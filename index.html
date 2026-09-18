@@ -211,6 +211,58 @@
     .cabinet{ padding:16px 12px 14px; }
     .hud{ gap:8px 14px; }
   }
+
+  .controls{
+    display:flex;
+    justify-content:center;
+    margin:18px 0 4px;
+  }
+  .dpad{
+    display:grid;
+    grid-template-columns:60px 60px 60px;
+    grid-template-rows:60px 60px 60px;
+    grid-template-areas:
+      ".    up    ."
+      "left .     right"
+      ".    down  .";
+    gap:6px;
+  }
+  .dbtn{
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:20px;
+    line-height:1;
+    color:var(--accent-mint);
+    background:var(--bg-panel-hi);
+    border:2px solid var(--accent-blue);
+    box-shadow:2px 2px 0 #0a0d16;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    touch-action:none;
+    -webkit-user-select:none; user-select:none;
+    -webkit-touch-callout:none;
+    -webkit-tap-highlight-color:transparent;
+    padding:0;
+  }
+  .dbtn.up{ grid-area:up; }
+  .dbtn.down{ grid-area:down; }
+  .dbtn.left{ grid-area:left; }
+  .dbtn.right{ grid-area:right; }
+  .dbtn.active, .dbtn:active{
+    background:var(--accent-blue);
+    color:#08101f;
+    box-shadow:1px 1px 0 #0a0d16;
+    transform:translate(1px,1px);
+  }
+  .dbtn:focus-visible{ outline:2px solid var(--accent-gold); outline-offset:2px; }
+
+  @media (max-width:480px){
+    .dpad{
+      grid-template-columns:64px 64px 64px;
+      grid-template-rows:64px 64px 64px;
+    }
+    .dbtn{ font-size:22px; }
+  }
 </style>
 
 <div class="stage">
@@ -231,7 +283,7 @@
           <div class="overlay-card">
             <h2>KAMIKAZE</h2>
             <p>The reactor on the <em>Kestrel-VII</em> is failing. It drags you back through your last few seconds at random &mdash; taking your progress with it, but also undoing any damage.</p>
-            <p class="keys"><b>WASD</b> to move &middot; recover all 8 cores &middot; avoid sentry drones.</p>
+            <p class="keys">Use the <b>D-pad</b> below to move &middot; recover all 8 cores &middot; avoid sentry drones.</p>
             <button class="btn" id="btnStart">BEGIN SALVAGE</button>
           </div>
         </div>
@@ -253,7 +305,16 @@
       <div class="hud-item"><span class="hud-label">UPTIME</span><span class="hud-value" id="timerVal">00:00</span></div>
     </div>
 
-    <p class="legend"><b>WASD</b> move &middot; salvage every core &middot; dodge sentry drones &middot; the ship's core stutters &mdash; expect to be dragged back through time</p>
+    <div class="controls">
+      <div class="dpad" id="dpad">
+        <button type="button" class="dbtn up" data-dir="up" aria-label="Move up">&#9650;</button>
+        <button type="button" class="dbtn left" data-dir="left" aria-label="Move left">&#9664;</button>
+        <button type="button" class="dbtn down" data-dir="down" aria-label="Move down">&#9660;</button>
+        <button type="button" class="dbtn right" data-dir="right" aria-label="Move right">&#9654;</button>
+      </div>
+    </div>
+
+    <p class="legend"><b>D-pad</b> move &middot; salvage every core &middot; dodge sentry drones &middot; the ship's core stutters &mdash; expect to be dragged back through time</p>
   </div>
 </div>
 
@@ -375,6 +436,18 @@
   window.addEventListener('keyup', function(e){
     var k=e.key.toLowerCase();
     if(MOVE_KEYS[k]){ keys[k]=false; }
+  });
+
+  var DIR_KEY={ up:'arrowup', down:'arrowdown', left:'arrowleft', right:'arrowright' };
+  document.querySelectorAll('.dbtn').forEach(function(btn){
+    var k=DIR_KEY[btn.dataset.dir];
+    function press(e){ e.preventDefault(); keys[k]=true; btn.classList.add('active'); }
+    function release(e){ if(e) e.preventDefault(); keys[k]=false; btn.classList.remove('active'); }
+    btn.addEventListener('pointerdown', press);
+    btn.addEventListener('pointerup', release);
+    btn.addEventListener('pointercancel', release);
+    btn.addEventListener('pointerleave', release);
+    btn.addEventListener('contextmenu', function(e){ e.preventDefault(); });
   });
 
   // ---------- DOM ----------
